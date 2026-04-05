@@ -384,14 +384,25 @@
 
     /* Responsive */
     @media (max-width: 480px) {
-      .carousel { width: 340px; height: 580px; }
-      .card { width: 340px; height: 580px; padding: 32px 24px; }
+      .header { padding: 8px 16px 4px; }
+      .header h1 { font-size: 1.3rem; }
+      .header p { font-size: 0.7rem; margin-top: 2px; }
+      .carousel-wrapper { height: calc(100vh - 60px); }
+      .carousel { width: calc(100vw - 40px); height: calc(100vh - 80px); max-height: calc(100vh - 80px); }
+      .card { width: calc(100vw - 40px); height: calc(100vh - 80px); max-height: calc(100vh - 80px); padding: 24px 20px 20px; }
+      .card-photo, .card-photo-placeholder { width: 70px; height: 70px; margin-bottom: 10px; }
+      .card-photo-placeholder { font-size: 1.4rem; }
+      .card-name { font-size: 1.1rem; }
+      .card-team { font-size: 0.6rem; }
+      .card-author { font-size: 0.7rem; margin-bottom: 12px; }
+      .card-message { font-size: 0.85rem; line-height: 1.65; }
+      .quote-mark { font-size: 2rem; margin-bottom: -8px; }
       .card.prev { transform: translateX(-110%) scale(0.8) rotateY(8deg); }
       .card.next { transform: translateX(110%) scale(0.8) rotateY(-8deg); }
-      .nav-btn.left { left: 8px; }
-      .nav-btn.right { right: 8px; }
-      .nav-btn { width: 40px; height: 40px; }
-      .header { padding: 32px 20px 20px; }
+      .nav-btn.left { left: 4px; }
+      .nav-btn.right { right: 4px; }
+      .nav-btn { width: 36px; height: 36px; }
+      .counter { bottom: 8px; font-size: 0.6rem; }
     }
 
     /* Particle effect */
