@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Prj. - 감사합니다</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0f0f1a;
+      --card-bg: rgba(255, 255, 255, 0.06);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text: #f0eee6;
+      --text-muted: rgba(240, 238, 230, 0.5);
+      --accent: #e8c47c;
+      --accent-glow: rgba(232, 196, 124, 0.15);
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Ambient background */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient::before,
+    .ambient::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.3;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .ambient::before {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, #e8c47c33, transparent);
+      top: -200px; left: -100px;
+    }
+
+    .ambient::after {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #7c9fe833, transparent);
+      bottom: -200px; right: -100px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(50px, 30px) scale(1.1); }
+      66% { transform: translate(-30px, -20px) scale(0.95); }
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 12px 20px 4px;
+    }
+
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #f0eee6, #e8c47c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* Carousel container */
+    .carousel-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: calc(100vh - 100px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+    }
+
+    .carousel {
+      position: relative;
+      width: 560px;
+      height: 100%;
+      max-height: calc(100vh - 120px);
+    }
+
+    /* Card */
+    .card {
+      position: absolute;
+      width: 560px;
+      height: 100%;
+      max-height: calc(100vh - 120px);
+      border-radius: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 40px 44px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      overflow: visible;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232, 196, 124, 0.4), transparent);
+    }
+
+    .card.active {
+      z-index: 5;
+      transform: translateX(0) scale(1);
+      opacity: 1;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 40px var(--accent-glow);
+    }
+
+    .card.prev {
+      z-index: 3;
+      transform: translateX(-120%) scale(0.85) rotateY(8deg);
+      opacity: 0.4;
+      filter: blur(2px);
+    }
+
+    .card.next {
+      z-index: 3;
+      transform: translateX(120%) scale(0.85) rotateY(-8deg);
+      opacity: 0.4;
+      filter: blur(2px);
+    }
+
+    .card.hidden-left {
+      z-index: 1;
+      transform: translateX(-250%) scale(0.7);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .card.hidden-right {
+      z-index: 1;
+      transform: translateX(250%) scale(0.7);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Photo */
+    .card-photo {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(232, 196, 124, 0.3);
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .card-photo-placeholder {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(232, 196, 124, 0.2), rgba(124, 159, 232, 0.2));
+      border: 3px solid rgba(232, 196, 124, 0.3);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+
+    /* Card content */
+    .card-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .card-team {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      letter-spacing: 0.03em;
+    }
+
+    .card-author {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .card-divider {
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      margin-bottom: 20px;
+    }
+
+    .card-message {
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: rgba(240, 238, 230, 0.85);
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      width: 100%;
+      scrollbar-width: none;
+    }
+
+    .card-message::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card-message span {
+      white-space: pre-line;
+    }
+
+    /* Quote marks */
+    .card-message::before {
+      content: none;
+    }
+
+    .quote-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      color: rgba(232, 196, 124, 0.15);
+      line-height: 1;
+      margin-bottom: -10px;
+      align-self: flex-start;
+    }
+
+    /* Navigation dots */
+    .dots {
+      position: fixed;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      padding: 0;
+    }
+
+    .dot.active {
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(232, 196, 124, 0.5);
+      transform: scale(1.3);
+    }
+
+    /* Arrow buttons */
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-btn:hover {
+      background: rgba(232, 196, 124, 0.15);
+      border-color: rgba(232, 196, 124, 0.3);
+    }
+
+    .nav-btn.left { left: 24px; }
+    .nav-btn.right { right: 24px; }
+
+    .nav-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), #7c9fe8);
+      z-index: 20;
+      transition: width 0.3s ease;
+    }
+
+    /* Counter */
+    .counter {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+    }
+
+    /* Auto-play toggle */
+    .autoplay-btn {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .autoplay-btn:hover {
+      border-color: rgba(232, 196, 124, 0.3);
+      color: var(--text);
+    }
+
+    .autoplay-btn.playing {
+      border-color: rgba(232, 196, 124, 0.4);
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .carousel { width: 340px; height: 580px; }
+      .card { width: 340px; height: 580px; padding: 32px 24px; }
+      .card.prev { transform: translateX(-110%) scale(0.8) rotateY(8deg); }
+      .card.next { transform: translateX(110%) scale(0.8) rotateY(-8deg); }
+      .nav-btn.left { left: 8px; }
+      .nav-btn.right { right: 8px; }
+      .nav-btn { width: 40px; height: 40px; }
+      .header { padding: 32px 20px 20px; }
+    }
+
+    /* Particle effect */
+    .particle {
+      position: fixed;
+      width: 2px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+
+  <header class="header">
+    <h1>Simple Prj.</h1>
+    <p>CBT 오픈에 헌신해주셔서 감사합니다.</p>
+  </header>
+
+  <div class="carousel-wrapper">
+    <div class="carousel" id="carousel"></div>
+  </div>
+
+  <button class="nav-btn left" id="prevBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button class="nav-btn right" id="nextBtn">
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="counter"></div>
+  <div class="progress-bar" id="progressBar"></div>
+
+  <button class="autoplay-btn playing" id="autoplayBtn">AUTO</button>
+
+  <script>
+    // ===== DATA =====
+    let DATA = [];
+
+    // ===== STATE =====
+    let currentIndex = 0;
+    let isAutoPlaying = true;
+    let autoPlayTimer = null;
+    const AUTO_INTERVAL = 8000;
+
+    // ===== INIT =====
+    const carousel = document.getElementById('carousel');
+    const dotsContainer = document.getElementById('dots');
+    const counter = document.getElementById('counter');
+    const progressBar = document.getElementById('progressBar');
+    const autoplayBtn = document.getElementById('autoplayBtn');
+
+    function getInitial(name) {
+      const clean = name.replace(/[(/].*/, '').trim();
+      return clean.charAt(0);
+    }
+
+    function parseName(name) {
+      // Split "서영미/사용자경험분석팀" or "김선하 (디자인시스템파트)"
+      let main = name, team = '';
+      const slashIdx = name.indexOf('/');
+      if (slashIdx > 0) {
+        main = name.substring(0, slashIdx).trim();
+        team = name.substring(slashIdx + 1).trim();
+      } else {
+        const parenMatch = name.match(/^(.+?)\s*\((.+)\)$/);
+        if (parenMatch) {
+          main = parenMatch[1].trim();
+          team = parenMatch[2].trim();
+        }
+      }
+      return { main, team };
+    }
+
+    function createCards() {
+      carousel.innerHTML = '';
+      DATA.forEach((item, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.index = i;
+
+        const photoHTML = item.photo
+          ? `<img class="card-photo" src="${item.photo}" alt="${item.name}">`
+          : `<div class="card-photo-placeholder">${getInitial(item.name)}</div>`;
+
+        const { main: displayName, team } = parseName(item.name);
+        const teamHTML = team ? `<div class="card-team">${team}</div>` : '';
+
+        card.innerHTML = `
+          ${photoHTML}
+          <div class="card-name">${displayName}</div>
+          ${teamHTML}
+          <div class="card-author">from. ${item.author}</div>
+          <div class="card-divider"></div>
+          <div class="quote-mark">"</div>
+          <div class="card-message"><span>${item.message}</span></div>
+        `;
+
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.index);
+          if (idx !== currentIndex) goTo(idx);
+        });
+
+        carousel.appendChild(card);
+      });
+    }
+
+    function createDots() {
+      dotsContainer.innerHTML = '';
+      if (DATA.length > 15) {
+        dotsContainer.style.display = 'none';
+        return;
+      }
+      dotsContainer.style.display = 'flex';
+      DATA.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot';
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function updateCards() {
+      const cards = carousel.querySelectorAll('.card');
+      cards.forEach((card, i) => {
+        card.className = 'card';
+        const diff = i - currentIndex;
+        if (diff === 0) card.classList.add('active');
+        else if (diff === -1 || (currentIndex === 0 && i === DATA.length - 1)) card.classList.add('prev');
+        else if (diff === 1 || (currentIndex === DATA.length - 1 && i === 0)) card.classList.add('next');
+        else if (diff < -1) card.classList.add('hidden-left');
+        else card.classList.add('hidden-right');
+      });
+
+      // Update dots
+      const dots = dotsContainer.querySelectorAll('.dot');
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
+
+      // Update counter
+      counter.textContent = `${String(currentIndex + 1).padStart(2, '0')} / ${String(DATA.length).padStart(2, '0')}`;
+
+      // Update progress bar
+      const progress = ((currentIndex + 1) / DATA.length) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    function goTo(index) {
+      currentIndex = ((index % DATA.length) + DATA.length) % DATA.length;
+      updateCards();
+      resetAutoPlay();
+    }
+
+    function next() { goTo(currentIndex + 1); }
+    function prev() { goTo(currentIndex - 1); }
+
+    // ===== AUTO PLAY =====
+    function startAutoPlay() {
+      stopAutoPlay();
+      autoPlayTimer = setInterval(next, AUTO_INTERVAL);
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+    }
+
+    function resetAutoPlay() {
+      if (isAutoPlaying) startAutoPlay();
+    }
+
+    autoplayBtn.addEventListener('click', () => {
+      isAutoPlaying = !isAutoPlaying;
+      autoplayBtn.classList.toggle('playing', isAutoPlaying);
+      if (isAutoPlaying) startAutoPlay();
+      else stopAutoPlay();
+    });
+
+    // ===== CONTROLS =====
+    document.getElementById('prevBtn').addEventListener('click', prev);
+    document.getElementById('nextBtn').addEventListener('click', next);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
+      if (e.key === ' ') { e.preventDefault(); autoplayBtn.click(); }
+    });
+
+    // Touch/swipe support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+    }, { passive: true });
+
+    // ===== PARTICLES =====
+    function createParticle() {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.top = Math.random() * 100 + 'vh';
+      document.body.appendChild(p);
+
+      const duration = 3000 + Math.random() * 4000;
+      p.animate([
+        { opacity: 0, transform: 'translateY(0) scale(0)' },
+        { opacity: 0.6, transform: `translateY(-${30 + Math.random() * 50}px) scale(1)` },
+        { opacity: 0, transform: `translateY(-${80 + Math.random() * 80}px) scale(0)` }
+      ], { duration, easing: 'ease-out' });
+
+      setTimeout(() => p.remove(), duration);
+    }
+
+    setInterval(createParticle, 600);
+
+    // ===== JSON LOADER =====
+    async function loadData() {
+      try {
+        const res = await fetch('data.json');
+        if (!res.ok) throw new Error('data.json not found');
+        const json = await res.json();
+        if (json.length > 0) {
+          DATA = json;
+        }
+      } catch (e) {
+        console.log('data.json 로드 실패:', e);
+      }
+      createCards();
+      createDots();
+      updateCards();
+      startAutoPlay();
+    }
+
+    // ===== START =====
+    loadData();
+  </script>
+</body>
+</html>
